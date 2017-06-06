@@ -116,22 +116,22 @@ sealed trait Path[+B, +T] {
 
   final def </>[TT](rel: Path[Rel, TT])(implicit ev: IsDir[T]): Path[B, TT] =
     (this, rel) match {
-      case (Current, Current) => Current
-      case (Root, Current) => Root
-      case (ParentIn(p1), Current) => ParentIn(p1 </> Current)
+      case (Current, Current)        => Current
+      case (Root, Current)           => Root
+      case (ParentIn(p1), Current)   => ParentIn(p1 </> Current)
       case (FileIn(p1, f1), Current) => FileIn(p1 </> Current, f1)
-      case (DirIn(p1, d1), Current) => DirIn(p1 </> Current, d1)
+      case (DirIn(p1, d1), Current)  => DirIn(p1 </> Current, d1)
 
       // these don't make sense, but cannot exist anyway
-      case (Current, Root) => Current
-      case (Root, Root) => Root
-      case (ParentIn(p1), Root) => ParentIn(p1 </> Current)
+      case (Current, Root)        => Current
+      case (Root, Root)           => Root
+      case (ParentIn(p1), Root)   => ParentIn(p1 </> Current)
       case (FileIn(p1, f1), Root) => FileIn(p1 </> Current, f1)
-      case (DirIn(p1, d1), Root) => DirIn(p1 </> Current, d1)
+      case (DirIn(p1, d1), Root)  => DirIn(p1 </> Current, d1)
 
-      case (p1, ParentIn(p2)) => ParentIn(p1 </> p2)
+      case (p1, ParentIn(p2))   => ParentIn(p1 </> p2)
       case (p1, FileIn(p2, f2)) => FileIn(p1 </> p2, f2)
-      case (p1, DirIn(p2, d2)) => DirIn(p1 </> p2, d2)
+      case (p1, DirIn(p2, d2))  => DirIn(p1 </> p2, d2)
     }
 
   // NB: scala doesn't cotton to `<..>`
@@ -153,11 +153,11 @@ sealed trait Path[+B, +T] {
   }
 
   final def refineType: Path[B, Dir] Either Path[B, File] = this match {
-    case Current => Left(Current)
-    case Root => Left(Root)
-    case ParentIn(p) => Left(ParentIn(p.unsafeCoerceType))
+    case Current      => Left(Current)
+    case Root         => Left(Root)
+    case ParentIn(p)  => Left(ParentIn(p.unsafeCoerceType))
     case FileIn(p, f) => Right(FileIn(p.unsafeCoerceType, f))
-    case DirIn(p, d) => Left(DirIn(p.unsafeCoerceType, d))
+    case DirIn(p, d)  => Left(DirIn(p.unsafeCoerceType, d))
   }
 
   final def maybeDir: Option[Path[B, Dir]] =
@@ -167,21 +167,21 @@ sealed trait Path[+B, +T] {
     this.refineType.toOption
 
   final def peel: Option[(Path[B, Dir], DirName Either FileName)] = this match {
-    case Current => None
-    case Root => None
+    case Current       => None
+    case Root          => None
     case p@ParentIn(_) =>
       val (c, p1) = p.canonicalize1
       if (c) p1.peel else None
-    case DirIn(p, d) => Some(p.unsafeCoerceType -> Left(d))
+    case DirIn(p, d)  => Some(p.unsafeCoerceType -> Left(d))
     case FileIn(p, f) => Some(p.unsafeCoerceType -> Right(f))
   }
 
   final def depth: Int = this match {
-    case Current => 0
-    case Root => 0
-    case ParentIn(p) => p.depth - 1
+    case Current      => 0
+    case Root         => 0
+    case ParentIn(p)  => p.depth - 1
     case FileIn(p, _) => p.depth + 1
-    case DirIn(p, _) => p.depth + 1
+    case DirIn(p, _)  => p.depth + 1
   }
 
   final def parentDir: Option[Path[B, Dir]] =
@@ -193,10 +193,10 @@ sealed trait Path[+B, +T] {
   }
 
   private[pathy] final def unsafeCoerceType[TT]: Path[B, TT] = this match {
-    case Current => Current
-    case Root => Root
-    case ParentIn(p) => ParentIn(p.unsafeCoerceType)
-    case DirIn(p, d) => DirIn(p.unsafeCoerceType, d)
+    case Current      => Current
+    case Root         => Root
+    case ParentIn(p)  => ParentIn(p.unsafeCoerceType)
+    case DirIn(p, d)  => DirIn(p.unsafeCoerceType, d)
     case FileIn(p, f) => FileIn(p.unsafeCoerceType, f)
   }
 
