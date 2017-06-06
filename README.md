@@ -29,5 +29,5 @@ libraryDependencies += "com.alexknvl" %% "pathy" % "0.0.2"
 The following imports will bring all types and operations into scope
 
 ```scala
-import pathy._, Path._
+import pathy._
 ````
