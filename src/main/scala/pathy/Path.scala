@@ -22,7 +22,8 @@ import java.nio.file.FileSystems
 import java.nio.file.{ Path => NioPath }
 
 import cats.data.NonEmptyList
-import cats.{Order, Show}
+import cats.{Semigroup, Order, Show}
+import cats.syntax.semigroup._
 import cats.syntax.either._
 import cats.syntax.order._
 import cats.syntax.show._
@@ -260,6 +261,30 @@ sealed trait Path[+B, +T] {
       case FileIn(p, f) => go(NonEmptyList(fileName(f.value), List.empty), p)
     }
   }
+
+  final def flattenS[X: Semigroup]
+  (root: => X, currentDir: => X, parentDir: => X,
+   dirName: String => X, fileName: String => X): X =
+  {
+    @tailrec def go(xs: X, at: AnyPath): X = {
+      at match {
+        case Current      => currentDir |+| xs
+        case Root         => root |+| xs
+        case ParentIn(p)  => go(parentDir |+| xs, p)
+        case DirIn(p, d)  => go(dirName(d.value) |+| xs, p)
+        case FileIn(p, f) => go(fileName(f.value) |+| xs, p)
+      }
+    }
+
+    this match {
+      case Current      => currentDir
+      case Root         => root
+      case ParentIn(p)  => go(parentDir, p)
+      case DirIn(p, d)  => go(dirName(d.value), p)
+      case FileIn(p, f) => go(fileName(f.value), p)
+    }
+  }
+
 
   final def toNioPath: NioPath =
     FileSystems.getDefault.getPath(PathCodec.posix.printPath(this))
